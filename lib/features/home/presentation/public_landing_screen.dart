@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_colors.dart';
+import '../../../core/widgets/bloomi_design.dart';
 
 class PublicLandingScreen extends StatelessWidget {
   const PublicLandingScreen({
@@ -8,252 +9,108 @@ class PublicLandingScreen extends StatelessWidget {
     required this.onRegister,
     super.key,
   });
-
-  final VoidCallback onLogin;
-  final VoidCallback onRegister;
-
+  final VoidCallback onLogin, onRegister;
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(22, 14, 22, 32),
-          children: [
-            Row(
-              children: [
-                Container(
-                  width: 42,
-                  height: 42,
-                  decoration: const BoxDecoration(
-                    color: AppColors.blush,
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    Icons.local_florist_rounded,
-                    color: AppColors.primary,
+  Widget build(BuildContext context) => Scaffold(
+    body: SafeArea(
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 600),
+          child: ListView(
+            padding: const EdgeInsets.only(bottom: 36),
+            children: [
+              BloomiWave(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 30, 24, 36),
+                  child: Column(
+                    children: [
+                      Image.asset(
+                        'assets/brand/bloomi-logo.png',
+                        width: 92,
+                        height: 92,
+                        color: Colors.white,
+                      ),
+                      const Text(
+                        'Bloomi',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 38,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                      const SizedBox(height: 26),
+                      const Icon(
+                        Icons.volunteer_activism_outlined,
+                        size: 108,
+                        color: Colors.white,
+                      ),
+                      const SizedBox(height: 12),
+                    ],
                   ),
                 ),
-                const SizedBox(width: 10),
-                const Text(
-                  'bloomi',
-                  style: TextStyle(
-                    color: AppColors.primary,
-                    fontSize: 24,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: -.8,
-                  ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const Text(
+                      'Tu donación puede cambiar una historia.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 30,
+                        height: 1.18,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Conecta con centros y acompaña tu camino como donante.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 16,
+                        height: 1.5,
+                        color: AppColors.muted,
+                      ),
+                    ),
+                    const SizedBox(height: 28),
+                    FilledButton(
+                      onPressed: onRegister,
+                      child: const Text('Registrarme'),
+                    ),
+                    const SizedBox(height: 12),
+                    OutlinedButton(
+                      onPressed: onLogin,
+                      child: const Text('Ya tengo una cuenta'),
+                    ),
+                    const SizedBox(height: 28),
+                    const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.favorite_outline,
+                          size: 16,
+                          color: AppColors.primary,
+                        ),
+                        SizedBox(width: 8),
+                        Flexible(
+                          child: Text(
+                            'Una comunidad que acompaña tu donación',
+                            style: TextStyle(
+                              color: AppColors.muted,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
-              ],
-            ),
-            const SizedBox(height: 22),
-            _WelcomeHero(onRegister: onRegister),
-            const SizedBox(height: 28),
-            const Text(
-              'Donar, paso a paso',
-              style: TextStyle(
-                color: AppColors.ink,
-                fontSize: 21,
-                fontWeight: FontWeight.w800,
               ),
-            ),
-            const SizedBox(height: 14),
-            const _HowItWorksCard(
-              number: '01',
-              icon: Icons.person_add_alt_1_rounded,
-              title: 'Crea tu perfil',
-              detail: 'Cuéntanos quién eres y registra tus datos de donante.',
-            ),
-            const SizedBox(height: 10),
-            const _HowItWorksCard(
-              number: '02',
-              icon: Icons.location_on_outlined,
-              title: 'Encuentra un centro',
-              detail:
-                  'Explora instituciones y opciones para donar cerca de ti.',
-            ),
-            const SizedBox(height: 10),
-            const _HowItWorksCard(
-              number: '03',
-              icon: Icons.card_giftcard_rounded,
-              title: 'Sigue tu impacto',
-              detail:
-                  'Consulta donaciones, puntos y recompensas desde tu cuenta.',
-            ),
-            const SizedBox(height: 24),
-            OutlinedButton(
-              onPressed: onLogin,
-              style: OutlinedButton.styleFrom(
-                minimumSize: const Size.fromHeight(52),
-                foregroundColor: AppColors.primary,
-                side: const BorderSide(color: AppColors.primary),
-              ),
-              child: const Text('Ya tengo una cuenta · Iniciar sesión'),
-            ),
-            const SizedBox(height: 14),
-            const Text(
-              'Al crear tu cuenta podrás acceder a tu perfil y seguimiento personal. Los datos reales se activarán cuando Bloomi conecte su servicio seguro.',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: AppColors.muted,
-                fontSize: 11,
-                height: 1.5,
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
-    );
-  }
-}
-
-class _WelcomeHero extends StatelessWidget {
-  const _WelcomeHero({required this.onRegister});
-
-  final VoidCallback onRegister;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(23),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [AppColors.primary, AppColors.primaryDark],
-        ),
-        borderRadius: BorderRadius.circular(28),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primary.withValues(alpha: .22),
-            blurRadius: 24,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: .16),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: const Text(
-              'UNA COMUNIDAD QUE SALVA VIDAS',
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w800,
-                fontSize: 9,
-                letterSpacing: .8,
-              ),
-            ),
-          ),
-          const SizedBox(height: 18),
-          const Text(
-            'Tu próxima\ndonación puede\nmarcar la diferencia.',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 29,
-              height: 1.08,
-              fontWeight: FontWeight.w800,
-              letterSpacing: -.5,
-            ),
-          ),
-          const SizedBox(height: 12),
-          const Text(
-            'Conecta con centros de donación y lleva el registro de tu camino como donante.',
-            style: TextStyle(
-              color: Color(0xFFFFE5E8),
-              fontSize: 13,
-              height: 1.45,
-            ),
-          ),
-          const SizedBox(height: 20),
-          SizedBox(
-            width: double.infinity,
-            child: FilledButton.icon(
-              onPressed: onRegister,
-              style: FilledButton.styleFrom(
-                backgroundColor: Colors.white,
-                foregroundColor: AppColors.primaryDark,
-                minimumSize: const Size.fromHeight(50),
-              ),
-              icon: const Icon(Icons.favorite_rounded, size: 18),
-              label: const Text('Registrarme'),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _HowItWorksCard extends StatelessWidget {
-  const _HowItWorksCard({
-    required this.number,
-    required this.icon,
-    required this.title,
-    required this.detail,
-  });
-
-  final String number;
-  final IconData icon;
-  final String title;
-  final String detail;
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(14),
-        child: Row(
-          children: [
-            Text(
-              number,
-              style: const TextStyle(
-                color: AppColors.primary,
-                fontSize: 12,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-            const SizedBox(width: 13),
-            Container(
-              width: 42,
-              height: 42,
-              decoration: const BoxDecoration(
-                color: AppColors.blush,
-                shape: BoxShape.circle,
-              ),
-              child: Icon(icon, color: AppColors.primary, size: 21),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      color: AppColors.ink,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  const SizedBox(height: 3),
-                  Text(
-                    detail,
-                    style: const TextStyle(
-                      color: AppColors.muted,
-                      fontSize: 11,
-                      height: 1.35,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+    ),
+  );
 }

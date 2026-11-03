@@ -89,3 +89,15 @@ Para probar un canje, registra e inicia sesión con una cuenta de prueba, reempl
 - El documento enviado es autodeclarado y no está verificado por una institución.
 - `points_ledger` es un libro de movimientos: el usuario solo lo lee; los puntos se generan desde donaciones confirmadas y las recompensas usan una transacción protegida por bloqueo de usuario.
 - Las respuestas del cuestionario solo son visibles para su propietario. No guardes información clínica real hasta definir consentimiento, retención y revisión de acceso.
+
+## Recuperación de contraseña
+
+La app ofrece «¿Olvidaste tu contraseña?» en el inicio de sesión. El usuario escribe su correo y ve «Revisa tu correo», con la dirección enviada, instrucciones, reenvío tras 60 segundos y opciones para corregir el correo o volver al inicio de sesión. No se piden códigos ni contraseñas en esta pantalla. El enlace del correo abre un formulario para elegir una contraseña nueva de 10 a 128 caracteres con confirmación. Después del cambio, el usuario vuelve a la app e inicia sesión.
+
+La página raíz de la API también admite los enlaces de recuperación de Supabase: detecta `type=recovery`, muestra un formulario de contraseña nueva y envía el token al endpoint protegido `POST /v1/auth/update-password`. El token se elimina de la dirección del navegador y solo se conserva en memoria. Los enlaces de registro muestran la confirmación de correo; los enlaces vencidos muestran instrucciones para solicitar otro. Configura la Site URL de Supabase con el origen público de esta API (no `localhost` cuando se abre el correo en otro dispositivo).
+
+**Configuración del correo en el proyecto de Supabase:** en Authentication → Email Templates → Reset Password, usa el contenido de `templates/recovery.html` y el asunto «Restablece tu contraseña de Bloomi». La plantilla solo incluye el botón con `{{ .ConfirmationURL }}`. La plantilla predeterminada con enlace también funciona. Configura SMTP para entregar correos a usuarios reales y verifica la caducidad y los límites de envío de Auth.
+
+`POST /v1/auth/forgot-password` es público y recibe `{ email }`. `POST /v1/auth/update-password` recibe `{ password }` y exige una sesión Bearer válida, verificada por AuthGuard con Supabase. El antiguo endpoint por código se eliminó. Nunca se usan permisos administrativos para saltarse la verificación. La solicitud no confirma si el correo está registrado.
+
+Prueba de aceptación: solicita un correo con una cuenta de prueba, abre el enlace más reciente, confirma la nueva contraseña y vuelve a la app para iniciar sesión con ella. Comprueba un enlace vencido, el reenvío y que la contraseña anterior deje de funcionar. Las pruebas unitarias simulan Supabase; no verifican la entrega real del correo.

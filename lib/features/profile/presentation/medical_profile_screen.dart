@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_colors.dart';
+import '../../../core/widgets/bloomi_design.dart';
+import '../../../core/widgets/bloomi_ui.dart';
 import '../data/medical_profile_repository.dart';
 import '../domain/medical_profile.dart';
 
@@ -40,94 +42,135 @@ class _MedicalProfileScreenState extends State<MedicalProfileScreen> {
   @override
   Widget build(BuildContext context) => PopScope(
     canPop: !widget.isRequiredFlow,
-    child: Scaffold(
-      appBar: AppBar(title: const Text('Ficha médica')),
-      body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.all(22),
+    child: BloomiFormLayout(
+      title: 'Ficha médica',
+      showBack: !widget.isRequiredFlow,
+      emblem: Icons.medical_information_outlined,
+      step: widget.isRequiredFlow ? 'Paso 2 de 2' : null,
+      children: [
+        const Center(
+          child: BloomiPill(
+            'Información privada',
+            color: AppColors.mint,
+            foreground: AppColors.mintInk,
+            icon: Icons.lock_outline,
+          ),
+        ),
+        const SizedBox(height: 20),
+        _area(
+          _meds,
+          'Medicamentos',
+          'Nombre, dosis y frecuencia, o “Ninguno”.',
+          Icons.medication_outlined,
+          AppColors.blush,
+          AppColors.primaryDark,
+        ),
+        const SizedBox(height: 16),
+        _area(
+          _conditions,
+          'Condiciones',
+          'Condiciones importantes, o “Ninguna”.',
+          Icons.monitor_heart_outlined,
+          AppColors.butter,
+          AppColors.butterInk,
+        ),
+        const SizedBox(height: 16),
+        _area(
+          _allergies,
+          'Alergias',
+          'Alergias conocidas, o “Ninguna”.',
+          Icons.spa_outlined,
+          AppColors.lavender,
+          AppColors.lavenderInk,
+        ),
+        const SizedBox(height: 12),
+        CheckboxListTile(
+          value: _reviewed,
+          onChanged: (v) => setState(() => _reviewed = v ?? false),
+          contentPadding: EdgeInsets.zero,
+          controlAffinity: ListTileControlAffinity.leading,
+          title: const Text(
+            'Revisé la ficha médica y completé lo que aplica.',
+            style: TextStyle(fontSize: 14),
+          ),
+        ),
+        const SizedBox(height: 18),
+        FilledButton(
+          onPressed: _saving ? null : _save,
+          child: _saving
+              ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : Text(
+                  widget.isRequiredFlow
+                      ? 'Guardar y terminar'
+                      : 'Guardar ficha médica',
+                ),
+        ),
+        const SizedBox(height: 16),
+        const BloomiSurface(
+          color: AppColors.blush,
+          padding: EdgeInsets.all(14),
+          child: Text(
+            'La aptitud para donar la determina el personal médico del centro.',
+            style: TextStyle(
+              color: AppColors.primaryDark,
+              fontSize: 13,
+              height: 1.5,
+            ),
+          ),
+        ),
+      ],
+    ),
+  );
+  Widget _area(
+    TextEditingController controller,
+    String title,
+    String hint,
+    IconData icon,
+    Color color,
+    Color foreground,
+  ) => BloomiSurface(
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
           children: [
-            const Text(
-              'Tu información de salud',
-              style: TextStyle(
-                color: AppColors.ink,
-                fontSize: 24,
-                fontWeight: FontWeight.w800,
+            BloomiEmblem(
+              icon,
+              size: 42,
+              background: color,
+              foreground: foreground,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w900,
+                ),
               ),
-            ),
-            const SizedBox(height: 6),
-            const Text(
-              'Registra lo importante para que el equipo de salud tenga contexto. La aptitud para donar siempre la determina el personal médico.',
-              style: TextStyle(color: AppColors.muted, height: 1.45),
-            ),
-            const SizedBox(height: 22),
-            _area(
-              _meds,
-              'Medicamentos que tomas',
-              'Nombre, dosis y frecuencia. Escribe “Ninguno” si no tomas.',
-            ),
-            const SizedBox(height: 14),
-            _area(
-              _conditions,
-              'Enfermedades o condiciones',
-              'Incluye condiciones importantes o escribe “Ninguna”.',
-            ),
-            const SizedBox(height: 14),
-            _area(
-              _allergies,
-              'Alergias',
-              'Medicamentos u otras alergias; escribe “Ninguna” si aplica.',
-            ),
-            const SizedBox(height: 10),
-            CheckboxListTile(
-              value: _reviewed,
-              onChanged: (v) => setState(() => _reviewed = v ?? false),
-              contentPadding: EdgeInsets.zero,
-              controlAffinity: ListTileControlAffinity.leading,
-              title: const Text(
-                'Revisé la ficha médica y completé lo que aplica.',
-                style: TextStyle(fontSize: 13),
-              ),
-            ),
-            const SizedBox(height: 18),
-            SizedBox(
-              height: 50,
-              child: FilledButton(
-                onPressed: _saving ? null : _save,
-                child: _saving
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : Text(
-                        widget.isRequiredFlow
-                            ? 'Guardar y terminar'
-                            : 'Guardar ficha médica',
-                      ),
-              ),
-            ),
-            const SizedBox(height: 12),
-            const Text(
-              'Tu información médica es privada y está vinculada a tu cuenta.',
-              textAlign: TextAlign.center,
-              style: TextStyle(color: AppColors.muted, fontSize: 12),
             ),
           ],
         ),
-      ),
+        const SizedBox(height: 14),
+        TextFormField(
+          controller: controller,
+          minLines: 1,
+          maxLines: 3,
+          maxLength: 4000,
+          decoration: InputDecoration(
+            labelText: title,
+            hintText: hint,
+            counterText: '',
+          ),
+        ),
+      ],
     ),
   );
-  Widget _area(TextEditingController c, String label, String hint) =>
-      TextFormField(
-        controller: c,
-        maxLines: 3,
-        maxLength: 4000,
-        decoration: InputDecoration(
-          labelText: label,
-          hintText: hint,
-          alignLabelWithHint: true,
-        ),
-      );
   Future<void> _save() async {
     if (!_reviewed) {
       ScaffoldMessenger.of(context).showSnackBar(

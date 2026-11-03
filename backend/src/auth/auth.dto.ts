@@ -1,5 +1,13 @@
 import { IsEmail, IsEnum, IsString, Length, MinLength, MaxLength } from 'class-validator';
 
+export class ForgotPasswordDto {
+  @IsEmail() @MaxLength(254) email!: string;
+}
+
+export class UpdatePasswordDto {
+  @IsString() @MinLength(10) @MaxLength(128) password!: string;
+}
+
 export enum ApiDocumentType { cc = 'cc', ce = 'ce', passport = 'passport', other = 'other' }
 
 export class RegisterDto {

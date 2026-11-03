@@ -82,6 +82,10 @@ class ApiClient {
     try { await post('/auth/logout', authenticated: true); } finally { await clearSession(); }
   }
 
+  Future<void> forgotPassword(String email) async {
+    await _raw('POST', '/auth/forgot-password', body: {'email': email.trim()});
+  }
+
   Future<void> clearSession() async {
     _accessToken = null;
     await _storage.delete(key: _accessKey);

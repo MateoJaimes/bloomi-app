@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_colors.dart';
+import '../../../core/widgets/bloomi_ui.dart';
+import '../../../core/widgets/bloomi_design.dart';
 import '../data/health_questionnaire_repository.dart';
 
 class HealthQuestionnaireScreen extends StatefulWidget {
@@ -18,142 +20,143 @@ class _HealthQuestionnaireScreenState extends State<HealthQuestionnaireScreen> {
   bool _refreshing = false;
 
   @override
+  void initState() {
+    super.initState();
+    _answers.addAll(widget.repository.answers ?? {});
+  }
+
+  @override
   Widget build(BuildContext context) {
     final questions = widget.repository.questions;
-    return Scaffold(
-      appBar: AppBar(title: const Text('Cuestionario de salud')),
-      body: SafeArea(
-        child: Column(
-          children: [
-            const Padding(
-              padding: EdgeInsets.fromLTRB(20, 4, 20, 12),
-              child: Text(
-                'Responde con sinceridad. El equipo de salud del centro revisará esta información y decidirá si puedes donar.',
-                style: TextStyle(color: AppColors.muted, height: 1.4),
-              ),
+    return BloomiFormLayout(
+      title: 'Cuestionario de salud',
+      children: [
+        ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: LinearProgressIndicator(
+            value: questions.isEmpty
+                ? 0
+                : (_answers.length / questions.length).clamp(0, 1),
+            minHeight: 10,
+            color: AppColors.lavenderInk,
+            backgroundColor: AppColors.lavender,
+          ),
+        ),
+        const SizedBox(height: 22),
+        const Text(
+          'Cuéntanos cómo te sientes',
+          style: TextStyle(fontSize: 26, fontWeight: FontWeight.w900),
+        ),
+        const SizedBox(height: 10),
+        const Text(
+          'Responde con sinceridad. El personal médico del centro revisará tus respuestas.',
+          style: TextStyle(color: AppColors.muted, fontSize: 15, height: 1.5),
+        ),
+        const SizedBox(height: 22),
+        if (questions.isEmpty)
+          BloomiSurface(
+            child: Column(
+              children: [
+                const BloomiEmblem(Icons.assignment_outlined, size: 60),
+                const SizedBox(height: 12),
+                Text(
+                  widget.repository.loadError == null
+                      ? 'No hay un cuestionario activo por ahora.'
+                      : 'No pudimos cargar el cuestionario. Intenta de nuevo.',
+                  textAlign: TextAlign.center,
+                ),
+                if (widget.repository.loadError != null)
+                  TextButton(
+                    onPressed: _refreshing ? null : _retryLoad,
+                    child: const Text('Reintentar'),
+                  ),
+              ],
             ),
-            Expanded(
-              child: questions.isEmpty
-                  ? Center(
-                      child: Padding(
-                        padding: const EdgeInsets.all(24),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(widget.repository.loadError == null ? Icons.assignment_outlined : Icons.cloud_off_rounded, color: AppColors.primary, size: 40),
-                            const SizedBox(height: 12),
-                            Text(
-                              widget.repository.loadError == null
-                                  ? 'No hay un cuestionario activo por ahora.'
-                                  : 'No pudimos cargar el cuestionario. ${widget.repository.loadError}',
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(color: AppColors.muted, height: 1.4),
-                            ),
-                            if (widget.repository.loadError != null) ...[
-                              const SizedBox(height: 12),
-                              OutlinedButton.icon(
-                                onPressed: _refreshing ? null : _retryLoad,
-                                icon: const Icon(Icons.refresh_rounded),
-                                label: const Text('Reintentar'),
-                              ),
-                            ],
-                          ],
-                        ),
-                      ),
-                    )
-                  : ListView.builder(
-                padding: const EdgeInsets.fromLTRB(18, 0, 18, 12),
-                itemCount: questions.length,
-                itemBuilder: (context, index) {
-                  final question = questions[index];
-                  final previousCategory = index == 0
-                      ? null
-                      : questions[index - 1].category;
-                  return Column(
+          )
+        else
+          for (var index = 0; index < questions.length; index++) ...[
+            BloomiSurface(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      if (question.category != previousCategory)
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(4, 14, 4, 6),
-                          child: Text(
-                            question.category.toUpperCase(),
-                            style: const TextStyle(
-                              color: AppColors.primary,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w800,
-                              letterSpacing: .5,
-                            ),
-                          ),
-                        ),
-                      Card(
-                        child: Padding(
-                          padding: const EdgeInsets.fromLTRB(14, 12, 14, 4),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                question.prompt,
-                                style: const TextStyle(
-                                  color: AppColors.ink,
-                                  fontWeight: FontWeight.w600,
-                                  height: 1.35,
-                                ),
-                              ),
-                              RadioGroup<bool>(
-                                groupValue: _answers[question.id],
-                                onChanged: (answer) {
-                                  if (answer != null) {
-                                    setState(
-                                      () => _answers[question.id] = answer,
-                                    );
-                                  }
-                                },
-                                child: Row(
-                                  children: [
-                                    const Expanded(
-                                      child: RadioListTile<bool>(
-                                        contentPadding: EdgeInsets.zero,
-                                        visualDensity: VisualDensity.compact,
-                                        title: Text('Sí'),
-                                        value: true,
-                                      ),
-                                    ),
-                                    const Expanded(
-                                      child: RadioListTile<bool>(
-                                        contentPadding: EdgeInsets.zero,
-                                        visualDensity: VisualDensity.compact,
-                                        title: Text('No'),
-                                        value: false,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
+                      BloomiEmblem(
+                        Icons.fact_check_outlined,
+                        size: 40,
+                        background: [
+                          AppColors.mint,
+                          AppColors.peach,
+                          AppColors.lavender,
+                        ][index % 3],
+                        foreground: [
+                          AppColors.mintInk,
+                          AppColors.primaryDark,
+                          AppColors.lavenderInk,
+                        ][index % 3],
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          questions[index].prompt,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                            height: 1.4,
                           ),
                         ),
                       ),
                     ],
-                  );
-                },
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(18, 8, 18, 12),
-              child: SizedBox(
-                width: double.infinity,
-                height: 48,
-                child: FilledButton(
-                  onPressed: questions.isEmpty ? null : _submit,
-                  child: Text(
-                    'Guardar respuestas (${_answers.length}/${questions.length})',
                   ),
-                ),
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    width: double.infinity,
+                    child: SegmentedButton<bool>(
+                      emptySelectionAllowed: true,
+                      showSelectedIcon: false,
+                      segments: const [
+                        ButtonSegment(value: true, label: Text('Sí')),
+                        ButtonSegment(value: false, label: Text('No')),
+                      ],
+                      selected: _answers.containsKey(questions[index].id)
+                          ? {_answers[questions[index].id]!}
+                          : {},
+                      onSelectionChanged: (selection) => setState(() {
+                        if (selection.isEmpty) {
+                          _answers.remove(questions[index].id);
+                        } else {
+                          _answers[questions[index].id] = selection.first;
+                        }
+                      }),
+                      style: ButtonStyle(
+                        backgroundColor: WidgetStateProperty.resolveWith(
+                          (states) => states.contains(WidgetState.selected)
+                              ? AppColors.primary
+                              : AppColors.surface,
+                        ),
+                        foregroundColor: WidgetStateProperty.resolveWith(
+                          (states) => states.contains(WidgetState.selected)
+                              ? Colors.white
+                              : AppColors.ink,
+                        ),
+                        minimumSize: const WidgetStatePropertyAll(Size(48, 48)),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
+            const SizedBox(height: 16),
           ],
+        const SizedBox(height: 12),
+        FilledButton(
+          onPressed: questions.isEmpty ? null : _submit,
+          child: Text(
+            'Guardar respuestas (${_answers.length}/${questions.length})',
+          ),
         ),
-      ),
+      ],
     );
   }
 
@@ -169,20 +172,21 @@ class _HealthQuestionnaireScreenState extends State<HealthQuestionnaireScreen> {
 
   Future<void> _submit() async {
     final questions = widget.repository.questions;
-    if (!questions.where((question) => question.required).every((question) => _answers.containsKey(question.id))) {
+    if (!questions
+        .where((question) => question.required)
+        .every((question) => _answers.containsKey(question.id))) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Completa todas las preguntas obligatorias.',
-          ),
-        ),
+        SnackBar(content: Text('Completa todas las preguntas obligatorias.')),
       );
       return;
     }
     try {
       await widget.repository.submitAnswers(_answers);
     } catch (error) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error.toString())));
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(error.toString())));
+      }
       return;
     }
     if (!mounted) return;

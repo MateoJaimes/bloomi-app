@@ -77,6 +77,25 @@ export class AuthService {
     return { user: { id: data.user.id, email: data.user.email }, session: toSession(data.session) };
   }
 
+  async forgotPassword(email: string) {
+    const { error } = await this.supabase.authClient.auth.resetPasswordForEmail(email.trim().toLowerCase());
+    if (error) throw new BadRequestException('No fue posible enviar el enlace. Espera un momento e inténtalo de nuevo.');
+    return { message: 'Si existe una cuenta con ese correo, recibirás un enlace para restablecer tu contraseña.' };
+  }
+
+  async updatePassword(accessToken: string, password: string) {
+    const updated = await fetch(`${this.supabaseUrl}/auth/v1/user`, {
+      method: 'PUT',
+      headers: { apikey: this.anonKey, Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password }),
+    });
+    if (!updated.ok) throw new BadRequestException('No fue posible cambiar la contraseña. Prueba con una contraseña diferente o solicita un enlace nuevo.');
+    await fetch(`${this.supabaseUrl}/auth/v1/logout?scope=global`, {
+      method: 'POST', headers: { apikey: this.anonKey, Authorization: `Bearer ${accessToken}` },
+    });
+    return { message: 'Contraseña actualizada. Inicia sesión con tu nueva contraseña.' };
+  }
+
   async logout(accessToken: string): Promise<{ ok: true }> {
     const response = await fetch(`${this.supabaseUrl}/auth/v1/logout`, {
       method: 'POST',

@@ -5,6 +5,7 @@ describe('AuthService', () => {
   const secret = 'unit-test-document-hmac-secret-32';
   const signUp = jest.fn();
   const queryAsSystem = jest.fn();
+  const resetPasswordForEmail = jest.fn();
   let service: AuthService;
 
   beforeEach(() => {
@@ -16,11 +17,41 @@ describe('AuthService', () => {
     queryAsSystem.mockResolvedValue({ rowCount: 0, rows: [] });
     const supabase = {
       documentHmacSecret: secret,
-      authClient: { auth: { signUp } },
+      authClient: { auth: { signUp, resetPasswordForEmail } },
     } as never;
     const database = { queryAsSystem } as never;
     const config = { getOrThrow: (key: string) => ({ SUPABASE_URL: 'https://demo.supabase.co', SUPABASE_ANON_KEY: 'anon' })[key] } as never;
     service = new AuthService(supabase, database, config);
+  });
+
+  afterEach(() => jest.restoreAllMocks());
+
+  it('normalizes recovery emails and returns a non-enumerating message', async () => {
+    resetPasswordForEmail.mockResolvedValue({ error: null });
+    const result = await service.forgotPassword(' DONOR@example.com ');
+    expect(resetPasswordForEmail).toHaveBeenCalledWith('donor@example.com');
+    expect(result.message).toContain('Si existe una cuenta');
+  });
+
+  it('reports recovery delivery failures', async () => {
+    resetPasswordForEmail.mockResolvedValue({ error: { message: 'rate limit' } });
+    await expect(service.forgotPassword('donor@example.com')).rejects.toThrow('No fue posible enviar');
+  });
+
+  it('uses only the verified recovery token to change the password and revoke sessions', async () => {
+    const request = jest.spyOn(global, 'fetch')
+      .mockResolvedValueOnce(new Response('{}'))
+      .mockResolvedValueOnce(new Response('{}'));
+    await service.updatePassword('recovery-token', 'new-password-123');
+    expect(request.mock.calls[0][1]).toMatchObject({ method: 'PUT', headers: { Authorization: 'Bearer recovery-token' }, body: JSON.stringify({ password: 'new-password-123' }) });
+    expect(request.mock.calls[1][0]).toContain('/logout?scope=global');
+  });
+
+  it('reports rejected passwords without claiming success', async () => {
+    const request = jest.spyOn(global, 'fetch')
+      .mockResolvedValueOnce(new Response('{}', { status: 422 }));
+    await expect(service.updatePassword('recovery-token', 'new-password-123')).rejects.toThrow('No fue posible cambiar');
+    expect(request).toHaveBeenCalledTimes(1);
   });
 
   it('stores only a keyed hash of a normalized identity document', async () => {

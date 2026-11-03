@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/theme/app_colors.dart';
+import '../../../core/widgets/bloomi_design.dart';
+import '../../../core/widgets/bloomi_ui.dart';
 import '../data/profile_repository.dart';
 import '../domain/user_profile.dart';
 
@@ -78,46 +79,41 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
   @override
   Widget build(BuildContext context) => PopScope(
     canPop: !widget.isRequiredFlow,
-    child: Scaffold(
-      appBar: AppBar(title: const Text('Datos personales')),
-      body: SafeArea(
-        child: Form(
-          key: _form,
-          child: ListView(
-            padding: const EdgeInsets.all(22),
+    child: BloomiFormLayout(
+      title: 'Datos personales',
+      formKey: _form,
+      showBack: !widget.isRequiredFlow,
+      illustration: BloomiDonorAvatar(
+        initial: _first.text.trim().isEmpty
+            ? 'B'
+            : _first.text.trim().characters.first.toUpperCase(),
+        bloodType: _blood,
+      ),
+      step: widget.isRequiredFlow ? 'Paso 1 de 2' : null,
+      children: [
+        BloomiSurface(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Text(
-                'Cuéntanos sobre ti',
-                style: TextStyle(
-                  color: AppColors.ink,
-                  fontSize: 24,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-              const SizedBox(height: 6),
-              Text(
-                'Usaremos estos datos para personalizar tu experiencia en Bloomi.',
-                style: TextStyle(color: AppColors.muted),
-              ),
-              const SizedBox(height: 22),
               _field(_first, 'Primer nombre'),
-              const SizedBox(height: 12),
+              const SizedBox(height: 14),
               _field(_second, 'Segundo nombre'),
-              const SizedBox(height: 12),
-              _field(_last, 'Primer apellido'),
-              const SizedBox(height: 12),
-              _field(_secondLast, 'Segundo apellido'),
+              const SizedBox(height: 14),
+              BloomiFieldPair(
+                first: _field(_last, 'Primer apellido'),
+                second: _field(_secondLast, 'Segundo apellido'),
+              ),
               const SizedBox(height: 14),
               OutlinedButton.icon(
                 onPressed: _pickDate,
-                icon: const Icon(Icons.calendar_month),
+                icon: const Icon(Icons.calendar_month_outlined),
                 label: Text(
                   _birth == null
                       ? 'Fecha de nacimiento'
                       : '${_birth!.day}/${_birth!.month}/${_birth!.year}',
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 14),
               _dropdown('Tipo de sangre', _blood, const [
                 'A+',
                 'A-',
@@ -129,43 +125,41 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
                 'O-',
                 'No lo sé',
               ], (v) => setState(() => _blood = v)),
-              const SizedBox(height: 12),
+              const SizedBox(height: 14),
               _dropdown('Género', _gender, const [
                 'Femenino',
                 'Masculino',
                 'Otro',
                 'Prefiero no decirlo',
               ], (v) => setState(() => _gender = v)),
-              const SizedBox(height: 12),
-              _field(_department, 'Departamento'),
-              const SizedBox(height: 12),
-              _field(_city, 'Ciudad'),
-              const SizedBox(height: 12),
-              _field(_address, 'Dirección (opcional)', required: false),
-              const SizedBox(height: 12),
-              _field(_phone, 'Teléfono (opcional)', required: false),
-              const SizedBox(height: 22),
-              SizedBox(
-                height: 50,
-                child: FilledButton(
-                  onPressed: _saving ? null : _save,
-                  child: _saving
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : Text(
-                          widget.isRequiredFlow
-                              ? 'Guardar y continuar'
-                              : 'Guardar datos personales',
-                        ),
-                ),
+              const SizedBox(height: 14),
+              BloomiFieldPair(
+                first: _field(_department, 'Departamento'),
+                second: _field(_city, 'Ciudad'),
               ),
             ],
           ),
         ),
-      ),
+        const SizedBox(height: 18),
+        _field(_address, 'Dirección (opcional)', required: false),
+        const SizedBox(height: 14),
+        _field(_phone, 'Teléfono (opcional)', required: false),
+        const SizedBox(height: 22),
+        FilledButton(
+          onPressed: _saving ? null : _save,
+          child: _saving
+              ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : Text(
+                  widget.isRequiredFlow
+                      ? 'Guardar y continuar'
+                      : 'Guardar datos personales',
+                ),
+        ),
+      ],
     ),
   );
 

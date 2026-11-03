@@ -4,6 +4,7 @@ import { NestFactory } from '@nestjs/core';
 import helmet from 'helmet';
 import type { NextFunction, Request, Response } from 'express';
 import { AppModule } from './app.module';
+import { authCallbackHtml, authCallbackScript } from './auth/auth-callback.page';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { cors: false });
@@ -16,15 +17,15 @@ async function bootstrap() {
   // Supabase redirects email confirmations to the configured Site URL. In local
   // development that URL may be the API origin, so provide a useful landing page.
   app.use((request: Request, response: Response, next: NextFunction) => {
+    if (request.method === 'GET' && request.path === '/auth-callback.js') {
+      response.setHeader('Cache-Control', 'no-store');
+      response.status(200).type('application/javascript').send(authCallbackScript);
+      return;
+    }
     if (request.method === 'GET' && request.path === '/') {
-      response.status(200).type('html').send(`<!doctype html>
-        <html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-        <title>Bloomi · Confirmación de correo</title></head>
-        <body style="font-family:system-ui,sans-serif;max-width:560px;margin:12vh auto;padding:24px;color:#30272a">
-        <h1>¡Gracias por unirte a Bloomi!</h1>
-        <p>Si acabas de confirmar tu correo, vuelve a la app e inicia sesión con tu cuenta.</p>
-        <p>Si el enlace indicó un error o ya venció, solicita un nuevo registro desde la app.</p>
-        </body></html>`);
+      response.setHeader('Cache-Control', 'no-store');
+      response.setHeader('Referrer-Policy', 'no-referrer');
+      response.status(200).type('html').send(authCallbackHtml);
       return;
     }
     next();
